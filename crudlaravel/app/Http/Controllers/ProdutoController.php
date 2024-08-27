@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Produto;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class ProdutoController extends Controller
 {
@@ -12,9 +16,11 @@ class ProdutoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
-        //
+        $produtos = Produto::latest()->paginate(5);
+        return view('produtos.index',compact('produtos'))
+            ->with('i',(request()->input('page',1)-1)*5);
     }
 
     /**
@@ -22,9 +28,9 @@ class ProdutoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create():View
     {
-        //
+        return view('produtos.create');
     }
 
     /**
@@ -33,9 +39,17 @@ class ProdutoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        //
+        $request->validate([
+            'descricao' => 'required',
+            'qtd' => 'required',
+            'precoUnitario' => 'required',
+            'precoVenda' => 'required',
+        ]);
+        Produto::create($request->all());
+        return redirect()->route('produtos.index')
+                        ->with('success','Produto criado com sucesso.');
     }
 
     /**
@@ -44,9 +58,9 @@ class ProdutoController extends Controller
      * @param  \App\Models\Produto  $produto
      * @return \Illuminate\Http\Response
      */
-    public function show(Produto $produto)
+    public function show(Produto $produto): View
     {
-        //
+        return view('produtos.show',compact('produto'));
     }
 
     /**
@@ -55,9 +69,9 @@ class ProdutoController extends Controller
      * @param  \App\Models\Produto  $produto
      * @return \Illuminate\Http\Response
      */
-    public function edit(Produto $produto)
+    public function edit(Produto $produto):View
     {
-        //
+        return view('produtos.edit',compact('produto'));
     }
 
     /**
@@ -67,9 +81,17 @@ class ProdutoController extends Controller
      * @param  \App\Models\Produto  $produto
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Produto $produto)
+    public function update(Request $request, Produto $produto): RedirectResponse
     {
-        //
+        $request->validate([
+            'descricao' => 'required',
+            'qtd' => 'required',
+            'precoUnitario' => 'required',
+            'precoVenda' => 'required',
+        ]);
+        $produto->update($request->all());
+        return redirect()->route('produtos.index')
+                        ->with('success','Produto atualizado com sucesso.');
     }
 
     /**
@@ -78,8 +100,10 @@ class ProdutoController extends Controller
      * @param  \App\Models\Produto  $produto
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Produto $produto)
+    public function destroy(Produto $produto): RedirectResponse
     {
-        //
+        $produto->delete();
+        return redirect()->route('produtos.index')
+                        ->with('success','Produto excluído com sucesso.');
     }
 }
